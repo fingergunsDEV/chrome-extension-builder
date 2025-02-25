@@ -4,12 +4,33 @@ import { Code, Layout, Eye, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import FileTree from "@/components/FileTree";
 
-const CodeEditorPanel = ({ content, onChange, language }: { content: string; onChange: (value: string) => void; language: string }) => {
+interface FileContent {
+  name: string;
+  content: string;
+}
+
+const CodeEditorPanel = ({ 
+  content, 
+  onChange, 
+  language,
+  fileName
+}: { 
+  content: string; 
+  onChange: (value: string) => void; 
+  language: string;
+  fileName?: string;
+}) => {
   return (
     <div className="editor-container min-h-[300px] animate-fade-in">
       <div className="flex items-center justify-between mb-2 text-editor-line">
-        <span className="text-sm">{language}</span>
-        <Save className="w-4 h-4 hover:text-white cursor-pointer" onClick={() => toast({ title: "Changes saved", description: "Your code has been saved successfully." })} />
+        <span className="text-sm">{fileName || language}</span>
+        <Save 
+          className="w-4 h-4 hover:text-white cursor-pointer" 
+          onClick={() => toast({ 
+            title: "Changes saved", 
+            description: `${fileName || language} has been saved successfully.` 
+          })} 
+        />
       </div>
       <textarea
         className="w-full h-[calc(100%-2rem)] bg-transparent resize-none focus:outline-none"
@@ -22,6 +43,7 @@ const CodeEditorPanel = ({ content, onChange, language }: { content: string; onC
 };
 
 const Index = () => {
+  const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
   const [html, setHtml] = useState("");
   const [css, setCss] = useState("");
   const [js, setJs] = useState("");
@@ -42,7 +64,16 @@ const Index = () => {
 
   return (
     <div className="flex h-screen">
-      {isSidebarOpen && <FileTree />}
+      {isSidebarOpen && (
+        <FileTree 
+          onFileSelect={(node) => {
+            if (node.type === "file") {
+              setSelectedFile({ name: node.name, content: node.content || "" });
+            }
+          }}
+          selectedFile={selectedFile?.name}
+        />
+      )}
       <div className="flex-1 overflow-auto">
         <div className="container p-4">
           <header className="mb-8 animate-fade-in">
@@ -82,21 +113,32 @@ const Index = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {activeTab === "editor" ? (
               <div className="space-y-6 animate-fade-in">
-                <CodeEditorPanel
-                  content={html}
-                  onChange={setHtml}
-                  language="HTML"
-                />
-                <CodeEditorPanel
-                  content={css}
-                  onChange={setCss}
-                  language="CSS"
-                />
-                <CodeEditorPanel
-                  content={js}
-                  onChange={setJs}
-                  language="JavaScript"
-                />
+                {selectedFile ? (
+                  <CodeEditorPanel
+                    content={selectedFile.content}
+                    onChange={(content) => setSelectedFile({ ...selectedFile, content })}
+                    language={selectedFile.name.split('.').pop()?.toUpperCase() || ""}
+                    fileName={selectedFile.name}
+                  />
+                ) : (
+                  <>
+                    <CodeEditorPanel
+                      content={html}
+                      onChange={setHtml}
+                      language="HTML"
+                    />
+                    <CodeEditorPanel
+                      content={css}
+                      onChange={setCss}
+                      language="CSS"
+                    />
+                    <CodeEditorPanel
+                      content={js}
+                      onChange={setJs}
+                      language="JavaScript"
+                    />
+                  </>
+                )}
               </div>
             ) : (
               <div className="col-span-2 glass-panel rounded-lg p-4 min-h-[300px] animate-fade-in">
