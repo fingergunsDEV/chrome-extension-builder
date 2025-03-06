@@ -1,8 +1,9 @@
 
 import { useState } from "react";
-import { Code, Layout, Eye, Save } from "lucide-react";
+import { Code, Layout, Eye, Save, Menu } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import FileTree from "@/components/FileTree";
+import SideMenu from "@/components/SideMenu";
 
 interface FileContent {
   name: string;
@@ -49,6 +50,7 @@ const Index = () => {
   const [js, setJs] = useState("");
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
   const combinedCode = `
     <html>
@@ -64,6 +66,10 @@ const Index = () => {
 
   return (
     <div className="flex h-screen">
+      {/* Side Menu */}
+      <SideMenu isOpen={isSideMenuOpen} setIsOpen={setIsSideMenuOpen} />
+      
+      {/* File tree sidebar */}
       {isSidebarOpen && (
         <FileTree 
           onFileSelect={(node) => {
@@ -74,6 +80,7 @@ const Index = () => {
           selectedFile={selectedFile?.name}
         />
       )}
+      
       <div className="flex-1 overflow-auto">
         <div className="container p-4">
           <header className="mb-8 animate-fade-in">
@@ -81,9 +88,19 @@ const Index = () => {
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="p-2 hover:bg-secondary rounded-lg"
+                title="Toggle file tree"
               >
                 <Layout className="w-4 h-4" />
               </button>
+              
+              <button
+                onClick={() => setIsSideMenuOpen(true)}
+                className="p-2 hover:bg-secondary rounded-lg"
+                title="Open side menu"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+              
               <h1 className="text-4xl font-bold">Chrome Extension Builder</h1>
             </div>
             <p className="text-muted-foreground">Create your extension with live preview</p>
