@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import FileTree from "@/components/FileTree";
 import SideMenu from "@/components/SideMenu";
 import { expandEmmet } from "@/utils/emmetHelper";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface FileContent {
   name: string;
@@ -72,7 +73,7 @@ const CodeEditorPanel = ({
   };
 
   return (
-    <div className="editor-container min-h-[300px] animate-fade-in shadow-lg border border-border/30">
+    <div className="editor-container min-h-[300px] h-[calc(100vh-240px)] animate-fade-in shadow-lg border border-border/30">
       <div className="flex items-center justify-between mb-2 text-editor-line bg-editor-bg/40 p-2 rounded-t-lg">
         <span className="text-sm font-medium">{fileName || language}</span>
         <Save 
@@ -103,6 +104,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"editor" | "preview">("editor");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+  const [currentEditorTab, setCurrentEditorTab] = useState("html");
 
   const combinedCode = `
     <html>
@@ -136,8 +138,8 @@ const Index = () => {
       )}
       
       <div className="flex-1 overflow-auto">
-        <div className="container p-4 max-w-7xl mx-auto">
-          <header className="mb-8 animate-fade-in">
+        <div className="h-full flex flex-col">
+          <header className="p-4 animate-fade-in">
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -160,7 +162,7 @@ const Index = () => {
             <p className="text-muted-foreground">Create your extension with live preview and Emmet support</p>
           </header>
 
-          <div className="flex gap-4 mb-6 animate-slide-up">
+          <div className="flex gap-4 mb-6 px-4 animate-slide-up">
             <button
               onClick={() => setActiveTab("editor")}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm ${
@@ -185,11 +187,11 @@ const Index = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="flex-1 px-4 pb-4">
             {activeTab === "editor" ? (
-              <div className="space-y-6 animate-fade-in">
+              <div className="h-full animate-fade-in">
                 {selectedFile ? (
-                  <div className="bg-card rounded-lg shadow-xl overflow-hidden">
+                  <div className="bg-card rounded-lg shadow-xl overflow-hidden h-full">
                     <CodeEditorPanel
                       content={selectedFile.content}
                       onChange={(content) => setSelectedFile({ ...selectedFile, content })}
@@ -198,33 +200,44 @@ const Index = () => {
                     />
                   </div>
                 ) : (
-                  <>
-                    <div className="bg-card rounded-lg shadow-xl overflow-hidden">
-                      <CodeEditorPanel
-                        content={html}
-                        onChange={setHtml}
-                        language="HTML"
-                      />
+                  <Tabs 
+                    value={currentEditorTab} 
+                    onValueChange={setCurrentEditorTab} 
+                    className="h-full flex flex-col"
+                  >
+                    <TabsList className="w-full justify-start border-b rounded-none bg-card px-2 pt-2">
+                      <TabsTrigger value="html" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">HTML</TabsTrigger>
+                      <TabsTrigger value="css" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">CSS</TabsTrigger>
+                      <TabsTrigger value="js" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">JavaScript</TabsTrigger>
+                    </TabsList>
+                    <div className="flex-1 mt-0">
+                      <TabsContent value="html" className="m-0 h-full">
+                        <CodeEditorPanel
+                          content={html}
+                          onChange={setHtml}
+                          language="HTML"
+                        />
+                      </TabsContent>
+                      <TabsContent value="css" className="m-0 h-full">
+                        <CodeEditorPanel
+                          content={css}
+                          onChange={setCss}
+                          language="CSS"
+                        />
+                      </TabsContent>
+                      <TabsContent value="js" className="m-0 h-full">
+                        <CodeEditorPanel
+                          content={js}
+                          onChange={setJs}
+                          language="JavaScript"
+                        />
+                      </TabsContent>
                     </div>
-                    <div className="bg-card rounded-lg shadow-xl overflow-hidden">
-                      <CodeEditorPanel
-                        content={css}
-                        onChange={setCss}
-                        language="CSS"
-                      />
-                    </div>
-                    <div className="bg-card rounded-lg shadow-xl overflow-hidden">
-                      <CodeEditorPanel
-                        content={js}
-                        onChange={setJs}
-                        language="JavaScript"
-                      />
-                    </div>
-                  </>
+                  </Tabs>
                 )}
               </div>
             ) : (
-              <div className="col-span-2 glass-panel rounded-lg p-4 min-h-[300px] animate-fade-in bg-card/50 backdrop-blur-sm shadow-xl">
+              <div className="glass-panel rounded-lg p-4 h-full animate-fade-in bg-card/50 backdrop-blur-sm shadow-xl">
                 <div className="bg-secondary/30 p-2 mb-2 rounded-lg flex items-center">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-destructive/70"></div>
@@ -235,7 +248,7 @@ const Index = () => {
                 </div>
                 <iframe
                   srcDoc={combinedCode}
-                  className="w-full h-[500px] rounded border border-border/30 bg-white"
+                  className="w-full h-[calc(100vh-290px)] rounded border border-border/30 bg-white"
                   title="Preview"
                   sandbox="allow-scripts"
                 />
@@ -243,8 +256,8 @@ const Index = () => {
             )}
           </div>
           
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p className="mt-2">Tip: Use Emmet shorthand in HTML files (e.g. <code className="bg-muted px-1 rounded">div.container</code> + Tab)</p>
+          <div className="mt-auto px-4 pb-2 text-center text-sm text-muted-foreground">
+            <p>Tip: Use Emmet shorthand in HTML files (e.g. <code className="bg-muted px-1 rounded">div.container</code> + Tab)</p>
           </div>
         </div>
       </div>
