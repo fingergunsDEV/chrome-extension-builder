@@ -1,103 +1,18 @@
 
-import { useState, KeyboardEvent, useEffect } from "react";
-import { Code, Layout, Eye, Save, Menu } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { Code, Eye } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FileTree from "@/components/FileTree";
 import SideMenu from "@/components/SideMenu";
-import { expandEmmet } from "@/utils/emmetHelper";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Header from "@/components/Header";
+import EditorTabs from "@/components/EditorTabs";
+import CodeEditorPanel from "@/components/CodeEditorPanel";
+import PreviewPanel from "@/components/PreviewPanel";
 
 interface FileContent {
   name: string;
   content: string;
 }
-
-const CodeEditorPanel = ({ 
-  content, 
-  onChange, 
-  language,
-  fileName
-}: { 
-  content: string; 
-  onChange: (value: string) => void; 
-  language: string;
-  fileName?: string;
-}) => {
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Tab key handling
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const start = e.currentTarget.selectionStart;
-      const end = e.currentTarget.selectionEnd;
-      
-      const newValue = content.substring(0, start) + '  ' + content.substring(end);
-      onChange(newValue);
-      
-      // Set cursor position after the inserted tab
-      setTimeout(() => {
-        e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + 2;
-      }, 0);
-    }
-    
-    // Emmet expansion with Tab key after typing an abbreviation
-    if (e.key === 'Tab' && !e.shiftKey) {
-      const start = e.currentTarget.selectionStart;
-      const textBeforeCursor = content.substring(0, start);
-      
-      // Check if there's a potential Emmet abbreviation before the cursor
-      const abbreviationMatch = textBeforeCursor.match(/[a-zA-Z0-9.#\{\}]+$/);
-      
-      if (abbreviationMatch) {
-        const abbreviation = abbreviationMatch[0];
-        const abbreviationStart = start - abbreviation.length;
-        
-        // Only try to expand if we're in HTML mode
-        if (language.toLowerCase() === 'html') {
-          const expanded = expandEmmet(abbreviation);
-          
-          // If expansion changed something, replace the abbreviation
-          if (expanded !== abbreviation) {
-            e.preventDefault();
-            
-            const newValue = content.substring(0, abbreviationStart) + expanded + content.substring(start);
-            onChange(newValue);
-            
-            // Position cursor at the end of the expanded HTML
-            setTimeout(() => {
-              e.currentTarget.selectionStart = e.currentTarget.selectionEnd = abbreviationStart + expanded.length;
-            }, 0);
-          }
-        }
-      }
-    }
-  };
-
-  return (
-    <div className="editor-container min-h-[300px] h-[calc(100vh-240px)] sm:h-[calc(100vh-200px)] animate-fade-in shadow-lg border border-border/30">
-      <div className="flex items-center justify-between mb-2 text-editor-line bg-editor-bg/40 p-2 rounded-t-lg">
-        <span className="text-sm font-medium">{fileName || language}</span>
-        <Save 
-          className="w-4 h-4 hover:text-white cursor-pointer transition-colors" 
-          onClick={() => toast({ 
-            title: "Changes saved", 
-            description: `${fileName || language} has been saved successfully.` 
-          })} 
-          aria-label="Save file"
-        />
-      </div>
-      <textarea
-        className="w-full h-[calc(100%-2rem)] bg-transparent resize-none focus:outline-none p-4 font-mono text-sm"
-        value={content}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
-        placeholder={`Write your ${language} code here...`}
-        aria-label={`${language} code editor`}
-      />
-    </div>
-  );
-};
 
 const Index = () => {
   const [selectedFile, setSelectedFile] = useState<FileContent | null>(null);
@@ -118,18 +33,6 @@ const Index = () => {
       setIsSidebarOpen(true);
     }
   }, [isMobile]);
-
-  const combinedCode = `
-    <html>
-      <head>
-        <style>${css}</style>
-      </head>
-      <body>
-        ${html}
-        <script>${js}</script>
-      </body>
-    </html>
-  `;
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-background to-muted/30">
@@ -152,41 +55,11 @@ const Index = () => {
       
       <div className="flex-1 overflow-auto">
         <div className="h-full flex flex-col">
-          <header className="p-4 animate-fade-in">
-            <div className="flex flex-col items-center gap-4 mb-4">
-              {/* Logo */}
-              <img 
-                src="/lovable-uploads/63347b67-1502-475c-b2ff-56de31f49604.png" 
-                alt="Holistic Growth Marketing Logo" 
-                className="max-w-xs w-full md:max-w-sm h-auto mb-2"
-              />
-              
-              <div className="flex items-center gap-4 w-full">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                  title="Toggle file tree"
-                  aria-label="Toggle file tree sidebar"
-                >
-                  <Layout className="w-4 h-4" />
-                </button>
-                
-                <button
-                  onClick={() => setIsSideMenuOpen(true)}
-                  className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                  title="Open side menu"
-                  aria-label="Open side menu"
-                >
-                  <Menu className="w-4 h-4" />
-                </button>
-                
-                <h1 className="text-xl sm:text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent truncate">
-                  {isMobile ? "Extension Builder" : "Chrome Extension Builder"}
-                </h1>
-              </div>
-            </div>
-            <p className="text-sm md:text-base text-muted-foreground">Create your extension with live preview and Emmet support</p>
-          </header>
+          <Header
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+            setIsSideMenuOpen={setIsSideMenuOpen}
+          />
 
           <div className="flex flex-wrap gap-2 md:gap-4 mb-4 md:mb-6 px-4 animate-slide-up">
             <button
@@ -228,60 +101,20 @@ const Index = () => {
                     />
                   </div>
                 ) : (
-                  <Tabs 
-                    value={currentEditorTab} 
-                    onValueChange={setCurrentEditorTab} 
-                    className="h-full flex flex-col"
-                  >
-                    <TabsList className="w-full justify-start border-b rounded-none bg-card px-2 pt-2 overflow-x-auto scrollbar-none">
-                      <TabsTrigger value="html" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">HTML</TabsTrigger>
-                      <TabsTrigger value="css" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">CSS</TabsTrigger>
-                      <TabsTrigger value="js" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">JavaScript</TabsTrigger>
-                    </TabsList>
-                    <div className="flex-1 mt-0">
-                      <TabsContent value="html" className="m-0 h-full">
-                        <CodeEditorPanel
-                          content={html}
-                          onChange={setHtml}
-                          language="HTML"
-                        />
-                      </TabsContent>
-                      <TabsContent value="css" className="m-0 h-full">
-                        <CodeEditorPanel
-                          content={css}
-                          onChange={setCss}
-                          language="CSS"
-                        />
-                      </TabsContent>
-                      <TabsContent value="js" className="m-0 h-full">
-                        <CodeEditorPanel
-                          content={js}
-                          onChange={setJs}
-                          language="JavaScript"
-                        />
-                      </TabsContent>
-                    </div>
-                  </Tabs>
+                  <EditorTabs
+                    currentEditorTab={currentEditorTab}
+                    setCurrentEditorTab={setCurrentEditorTab}
+                    html={html}
+                    setHtml={setHtml}
+                    css={css}
+                    setCss={setCss}
+                    js={js}
+                    setJs={setJs}
+                  />
                 )}
               </div>
             ) : (
-              <div className="glass-panel rounded-lg p-2 md:p-4 h-full animate-fade-in bg-card/50 backdrop-blur-sm shadow-xl">
-                <div className="bg-secondary/30 p-2 mb-2 rounded-lg flex items-center">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-destructive/70"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/70"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500/70"></div>
-                  </div>
-                  <div className="mx-auto text-xs text-muted-foreground">Preview</div>
-                </div>
-                <iframe
-                  srcDoc={combinedCode}
-                  className="w-full h-[calc(100vh-290px)] sm:h-[calc(100vh-250px)] rounded border border-border/30 bg-white"
-                  title="Extension Preview"
-                  sandbox="allow-scripts"
-                  aria-label="Live preview of your extension"
-                />
-              </div>
+              <PreviewPanel html={html} css={css} js={js} />
             )}
           </div>
           
