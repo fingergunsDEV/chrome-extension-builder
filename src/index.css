@@ -64,21 +64,36 @@
   }
 
   .editor-container {
-    @apply bg-editor-bg text-editor-text font-mono p-4 rounded-lg;
+    @apply bg-editor-bg text-editor-text font-mono p-2 sm:p-4 rounded-lg;
   }
 
   .hover-effect {
     @apply transition-all duration-200 ease-in-out hover:scale-[1.02];
   }
   
-  /* Smooth scrolling for the whole page */
+  /* Enhanced accessibility with smooth scrolling for the whole page */
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%; /* Prevent text size adjustment on orientation change */
+  }
+  
+  /* Improved color contrast for accessibility */
+  .high-contrast {
+    --muted-foreground: 215.4 16.3% 36.9%;
   }
   
   /* Modern card styles */
   .modern-card {
     @apply bg-card rounded-lg border border-border/40 shadow-soft transition-shadow hover:shadow-glow;
+  }
+  
+  /* Focus styles for accessibility */
+  :focus {
+    @apply outline-none;
+  }
+  
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
   }
   
   /* Button styles */
@@ -97,6 +112,16 @@
   /* Text gradient */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
+  }
+  
+  /* Hide scrollbar class */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -120,5 +145,19 @@
   
   .shadow-outline {
     box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+  
+  /* Responsive spacing utilities */
+  .responsive-p {
+    @apply p-2 sm:p-4 md:p-6;
+  }
+  
+  .responsive-m {
+    @apply m-2 sm:m-4 md:m-6;
+  }
+  
+  /* Skip to content for accessibility */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-background focus:text-foreground focus:p-4 focus:m-4 focus:rounded-md;
   }
 }

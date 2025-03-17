@@ -1,7 +1,8 @@
 
-import { useState, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, useEffect } from "react";
 import { Code, Layout, Eye, Save, Menu } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import FileTree from "@/components/FileTree";
 import SideMenu from "@/components/SideMenu";
 import { expandEmmet } from "@/utils/emmetHelper";
@@ -73,7 +74,7 @@ const CodeEditorPanel = ({
   };
 
   return (
-    <div className="editor-container min-h-[300px] h-[calc(100vh-240px)] animate-fade-in shadow-lg border border-border/30">
+    <div className="editor-container min-h-[300px] h-[calc(100vh-240px)] sm:h-[calc(100vh-200px)] animate-fade-in shadow-lg border border-border/30">
       <div className="flex items-center justify-between mb-2 text-editor-line bg-editor-bg/40 p-2 rounded-t-lg">
         <span className="text-sm font-medium">{fileName || language}</span>
         <Save 
@@ -82,6 +83,7 @@ const CodeEditorPanel = ({
             title: "Changes saved", 
             description: `${fileName || language} has been saved successfully.` 
           })} 
+          aria-label="Save file"
         />
       </div>
       <textarea
@@ -91,6 +93,7 @@ const CodeEditorPanel = ({
         onKeyDown={handleKeyDown}
         spellCheck={false}
         placeholder={`Write your ${language} code here...`}
+        aria-label={`${language} code editor`}
       />
     </div>
   );
@@ -105,6 +108,16 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
   const [currentEditorTab, setCurrentEditorTab] = useState("html");
+  const isMobile = useIsMobile();
+
+  // Auto-close sidebar on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    } else {
+      setIsSidebarOpen(true);
+    }
+  }, [isMobile]);
 
   const combinedCode = `
     <html>
@@ -145,6 +158,7 @@ const Index = () => {
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="p-2 hover:bg-secondary rounded-lg transition-colors"
                 title="Toggle file tree"
+                aria-label="Toggle file tree sidebar"
               >
                 <Layout className="w-4 h-4" />
               </button>
@@ -153,41 +167,46 @@ const Index = () => {
                 onClick={() => setIsSideMenuOpen(true)}
                 className="p-2 hover:bg-secondary rounded-lg transition-colors"
                 title="Open side menu"
+                aria-label="Open side menu"
               >
                 <Menu className="w-4 h-4" />
               </button>
               
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Chrome Extension Builder</h1>
+              <h1 className="text-xl sm:text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent truncate">
+                {isMobile ? "Extension Builder" : "Chrome Extension Builder"}
+              </h1>
             </div>
-            <p className="text-muted-foreground">Create your extension with live preview and Emmet support</p>
+            <p className="text-sm md:text-base text-muted-foreground">Create your extension with live preview and Emmet support</p>
           </header>
 
-          <div className="flex gap-4 mb-6 px-4 animate-slide-up">
+          <div className="flex flex-wrap gap-2 md:gap-4 mb-4 md:mb-6 px-4 animate-slide-up">
             <button
               onClick={() => setActiveTab("editor")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm ${
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all duration-200 shadow-sm ${
                 activeTab === "editor" 
                   ? "bg-primary text-primary-foreground shadow-primary/20" 
                   : "bg-secondary hover:bg-secondary/80"
               }`}
+              aria-pressed={activeTab === "editor"}
             >
               <Code className="w-4 h-4" />
-              Editor
+              <span className="text-sm md:text-base">Editor</span>
             </button>
             <button
               onClick={() => setActiveTab("preview")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm ${
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-all duration-200 shadow-sm ${
                 activeTab === "preview" 
                   ? "bg-primary text-primary-foreground shadow-primary/20" 
                   : "bg-secondary hover:bg-secondary/80"
               }`}
+              aria-pressed={activeTab === "preview"}
             >
               <Eye className="w-4 h-4" />
-              Preview
+              <span className="text-sm md:text-base">Preview</span>
             </button>
           </div>
 
-          <div className="flex-1 px-4 pb-4">
+          <div className="flex-1 px-2 md:px-4 pb-4">
             {activeTab === "editor" ? (
               <div className="h-full animate-fade-in">
                 {selectedFile ? (
@@ -205,7 +224,7 @@ const Index = () => {
                     onValueChange={setCurrentEditorTab} 
                     className="h-full flex flex-col"
                   >
-                    <TabsList className="w-full justify-start border-b rounded-none bg-card px-2 pt-2">
+                    <TabsList className="w-full justify-start border-b rounded-none bg-card px-2 pt-2 overflow-x-auto scrollbar-none">
                       <TabsTrigger value="html" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">HTML</TabsTrigger>
                       <TabsTrigger value="css" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">CSS</TabsTrigger>
                       <TabsTrigger value="js" className="data-[state=active]:bg-editor-bg data-[state=active]:text-editor-text">JavaScript</TabsTrigger>
@@ -237,7 +256,7 @@ const Index = () => {
                 )}
               </div>
             ) : (
-              <div className="glass-panel rounded-lg p-4 h-full animate-fade-in bg-card/50 backdrop-blur-sm shadow-xl">
+              <div className="glass-panel rounded-lg p-2 md:p-4 h-full animate-fade-in bg-card/50 backdrop-blur-sm shadow-xl">
                 <div className="bg-secondary/30 p-2 mb-2 rounded-lg flex items-center">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-destructive/70"></div>
@@ -248,15 +267,16 @@ const Index = () => {
                 </div>
                 <iframe
                   srcDoc={combinedCode}
-                  className="w-full h-[calc(100vh-290px)] rounded border border-border/30 bg-white"
-                  title="Preview"
+                  className="w-full h-[calc(100vh-290px)] sm:h-[calc(100vh-250px)] rounded border border-border/30 bg-white"
+                  title="Extension Preview"
                   sandbox="allow-scripts"
+                  aria-label="Live preview of your extension"
                 />
               </div>
             )}
           </div>
           
-          <div className="mt-auto px-4 pb-2 text-center text-sm text-muted-foreground">
+          <div className="mt-auto px-4 pb-2 text-center text-xs sm:text-sm text-muted-foreground">
             <p>Tip: Use Emmet shorthand in HTML files (e.g. <code className="bg-muted px-1 rounded">div.container</code> + Tab)</p>
           </div>
         </div>
